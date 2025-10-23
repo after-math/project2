@@ -3,7 +3,7 @@ import streamlit as st
 
 
 # ---------------- 页面配置 ----------------
-st.set_page_config(page_title="登录示例", page_icon="🔐", layout="centered")
+st.set_page_config(page_title="智能优解", page_icon="🔐", layout="centered")
 
 # ---------------- 状态初始化 ----------------
 if "logged_in" not in st.session_state:
