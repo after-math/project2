@@ -5,7 +5,18 @@ import pandas as pd
 import datetime
 
 # ========== 页面配置 ==========
-st.set_page_config(page_title="我的", page_icon="👤", layout="wide",)
+st.set_page_config(page_title="我的", page_icon="👤", layout="centered",)
+# 在 Streamlit 中强制设置 viewport
+st.markdown("""
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+/* 保证移动端布局正常 */
+html, body {
+    zoom: 1.0 !important;
+    -webkit-text-size-adjust: 100% !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ========== 样式优化 ==========
 st.markdown("""
