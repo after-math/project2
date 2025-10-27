@@ -5,17 +5,6 @@ from streamlit_echarts import st_echarts
 
 # ========== 页面配置 ==========
 st.set_page_config(page_title="用电情况监测", page_icon="⚡", layout="wide")
-# 在 Streamlit 中强制设置 viewport
-st.markdown("""
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<style>
-/* 保证移动端布局正常 */
-html, body {
-    zoom: 1.0 !important;
-    -webkit-text-size-adjust: 100% !important;
-}
-</style>
-""", unsafe_allow_html=True)
 
 # ========== 页面标题与日期选择 ==========
 col_title, col_date = st.columns([4, 1])
