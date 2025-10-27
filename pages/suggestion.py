@@ -3,7 +3,7 @@ from streamlit_echarts import st_echarts
 import numpy as np
 
 # ========== 页面配置 ==========
-st.set_page_config(page_title="优化建议", page_icon="💡", layout="wide")
+st.set_page_config(page_title="优化建议", page_icon="💡", layout="centered")
 
 # ========== 全局样式优化 ==========
 st.markdown("""
