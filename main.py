@@ -7,7 +7,7 @@ st.set_page_config(page_title="智能优解", page_icon="🔐", layout="centered
 
 # ---------------- 状态初始化 ----------------
 if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+    st.session_state.logged_in = True
 
 # ---------------- 登录页 ----------------
 def login_page():
