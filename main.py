@@ -8,18 +8,32 @@ with open("头像.jpg", "rb") as f:
 
 # ======== 页面配置 ========
 st.set_page_config(page_title="智能优解", page_icon="🔐", layout="centered")
-# 在 Streamlit 中强制设置 viewport
 st.markdown("""
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
 <style>
-/* 保证移动端布局正常 */
+/* 保证移动端字体与桌面一致 */
 html, body {
     zoom: 1.0 !important;
     -webkit-text-size-adjust: 100% !important;
 }
+
+/* 让 Streamlit 主内容区在移动端不缩小 */
+[data-testid="stAppViewContainer"] {
+    max-width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+/* 调整标题在手机端的比例 */
+@media (max-width: 768px) {
+    h1 { font-size: 1.6rem !important; }
+    h2 { font-size: 1.4rem !important; }
+    h3 { font-size: 1.2rem !important; }
+    p, span, div { font-size: 1rem !important; }
+    [data-testid="stSidebar"] { width: 80vw !important; }
+}
 </style>
 """, unsafe_allow_html=True)
-
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = True
 
