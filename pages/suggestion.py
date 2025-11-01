@@ -110,81 +110,186 @@ div.stButton > button:hover {
 st.markdown("## 💡 优化建议")
 st.markdown('<div class="section">', unsafe_allow_html=True)
 
-# ========== 左右主布局 ==========
-main_col, side_col = st.columns([3.2, 1.1], gap="large")
+# 不再需要右侧栏，只保留主列
+main_col, _ = st.columns([4, 0.0001])  # 第二列宽度近乎为0
 
-# ========== 左侧主体内容 ==========
+# ========== 主体内容 ==========
 with main_col:
-    st.markdown("### ⏱️ 优化前后时段对比")
 
-    option = {
-        "tooltip": {"trigger": "axis"},
-        "legend": {"data": ["原用电时段", "优化后推荐时段"], "top": 10},
-        "grid": {"left": "5%", "right": "5%", "bottom": "10%", "containLabel": True},
-        "xAxis": {"type": "value", "name": "时间（小时）"},
-        "yAxis": {"type": "category", "data": ["电热水器", "洗碗机", "洗衣机", "微波炉"]},
-        "series": [
-            {
-                "name": "原用电时段",
-                "type": "bar",
-                "data": [8, 12, 15, 18],
-                "itemStyle": {"color": "#4C9AFF"},
-            },
-            {
-                "name": "优化后推荐时段",
-                "type": "bar",
-                "data": [6, 10, 13, 17],
-                "itemStyle": {"color": "#F5A623"},
-            },
-        ],
-    }
-    st_echarts(option, height="350px", key="bar")
-
-# ========== 右侧配置栏 ==========
-with side_col:
-    st.markdown('<div class="right-box">', unsafe_allow_html=True)
+    # ---------- 权重设置（横向放在图上方） ----------
     st.markdown("#### ⚙️ 权重设置")
-    w1 = st.number_input("电费权重", 0.0, 1.0, 0.7, 0.1)
-    w2 = st.number_input("舒适度权重", 0.0, 1.0, 0.3, 0.1)
-    st.caption("💬 提示：电费权重越高越节能，舒适度权重越高则更注重使用体验。")
-    st.markdown('</div>', unsafe_allow_html=True)
+    col1, col2 = st.columns([1, 1], gap="medium")
+    with col1:
+        w1 = st.number_input("电费权重", 0.0, 1.0, 0.7, 0.1, key="w1")
+    with col2:
+        w2 = st.number_input("舒适度权重", 0.0, 1.0, 0.3, 0.1, key="w2")
+
+    st.caption("💬 电费权重越高越节能，舒适度权重越高则更注重使用体验。")
+
+    st.markdown("### ⏱️ 优化前后时段对比（多时段展示）")
+
+# ========= 数据 =========
+devices = ["电热水器", "洗衣机", "洗碗机", "微波炉"]
+
+before = [
+    [(6.5, 8.0), (18.0, 20.0)],
+    [(8.0, 9.0), (20.0, 21.0)],
+    [(9.0, 10.0), (19.0, 20.0)],
+    [(7.0, 8.0), (21.0, 22.0)],
+]
+after = [
+    [(6.0, 7.5), (17.5, 19.0)],
+    [(7.5, 8.5), (19.5, 20.5)],
+    [(8.5, 9.5), (18.5, 19.5)],
+    [(6.5, 7.5), (20.0, 21.0)],
+]
+
+# ========= 构造甘特条数据 =========
+def build_bar_data(time_ranges, color):
+    bars = []
+    for i, dev in enumerate(devices[::-1]):  # 倒序画
+        for start, end in time_ranges[i]:
+            bars.append({
+                "value": [start, end - start, dev],
+                "itemStyle": {"color": color},
+                "label": {"show": False}
+            })
+    return bars
+
+# ========= ECharts 配置 =========
+option = {
+    "tooltip": {
+        "trigger": "item",
+        # ✅ 用 JS 字符串实现 formatter
+        "formatter": """
+            function (params) {
+                var s = params.value;
+                var start = s[0];
+                var end = s[0] + s[1];
+                return s[2] + '<br/>' + start.toFixed(2) + '–' + end.toFixed(2) + ' 小时';
+            }
+        """
+    },
+    "legend": {"data": ["原用电时段", "优化后用电时段"], "top": 10},
+    "grid": {"left": "10%", "right": "5%", "bottom": "10%", "containLabel": True},
+    "xAxis": {
+        "type": "value",
+        "min": 0,
+        "max": 24,
+        "name": "时间（小时）",
+        "axisLabel": {"formatter": "{value}:00"},
+        "splitLine": {"lineStyle": {"type": "dashed", "opacity": 0.3}},
+    },
+    "yAxis": {
+        "type": "category",
+        "data": devices[::-1],
+        "axisLabel": {"fontSize": 13, "margin": 12},
+    },
+    "series": [
+        {
+            "name": "原用电时段",
+            "type": "bar",
+            "barWidth": 14,
+            "encode": {"x": [0, 1], "y": 2},
+            "data": build_bar_data(before, "#4a6ee0"),
+        },
+        {
+            "name": "优化后用电时段",
+            "type": "bar",
+            "barWidth": 14,
+            "encode": {"x": [0, 1], "y": 2},
+            "data": build_bar_data(after, "#f6a23c"),
+        },
+    ]
+}
+
+st_echarts(option, height="500px")
 
 # ========== 2️⃣ 优化前后目标对比 ==========
-st.markdown('<div class="full-width">', unsafe_allow_html=True)
+# st.markdown('<div class="full-width">', unsafe_allow_html=True)
 st.markdown("### 📊 优化前后目标对比")
 st.markdown("<div style='font-size:18px; font-weight:500;'>请选择要查看的电器</div>", unsafe_allow_html=True)
 
 device = st.selectbox("", ["微波炉", "电热水器", "洗碗机"])
 
-st.markdown('<div class="subcard">', unsafe_allow_html=True)
+# st.markdown('<div class="subcard">', unsafe_allow_html=True)
 
-# 第一行三列（对比信息）
-c1, c2, c3 = st.columns([1.2, 1.2, 1])
 
-with c1:
-    st.markdown('<p>昨日用电时段</p>', unsafe_allow_html=True)
-    st.write("07:21–08:05  \n18:09–19:10")
+# ======== 表格样式 ========
+st.markdown("""
+<style>
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'PingFang SC', 'Microsoft YaHei';
+    margin-bottom: 10px;
+}
 
-with c2:
-    st.markdown('<p>建议用电时段</p>', unsafe_allow_html=True)
-    st.write("06:18–07:30  \n17:15–18:40")
+.custom-table th, .custom-table td {
+    border: 1px solid #e0e0e0;
+    text-align: center;
+    padding: 10px;
+    font-size: 15px;
+}
 
-with c3:
-    st.markdown('<p>电费 (¥)</p>', unsafe_allow_html=True)
-    st.metric("优化前", "9.10")
-    st.metric("优化后", "8.13")
+.custom-table th {
+    background-color: #f5f7fa;
+    font-weight: 600;
+}
 
-st.markdown("<hr>", unsafe_allow_html=True)
+.custom-table caption {
+    caption-side: top;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
 
-# 第二行两列（说明部分）
-c4, c5 = st.columns([1, 1.5])
-with c4:
-    st.markdown('<p>前后舒适度变化</p>', unsafe_allow_html=True)
-    st.write("前：1.0000  \n后：0.9375")
+.highlight {
+    background-color: #e8f4ff;
+    font-weight: 500;
+}
+</style>
+""", unsafe_allow_html=True)
 
-with c5:
-    st.markdown('<p>说明</p>', unsafe_allow_html=True)
-    st.write("优化后整体舒适度略降，但节约约 10.6% 电费。")
+
+# ======== 表格主体 ========
+st.markdown("""
+<table class="custom-table">
+    <caption>⚡ 用电优化对比</caption>
+    <thead>
+        <tr>
+            <th>昨日用电时段</th>
+            <th>建议用电时段</th>
+            <th>电费 (¥)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>07:21–08:05<br>18:09–19:10</td>
+            <td>06:18–07:30<br>17:15–18:40</td>
+            <td>
+                <span class="highlight">优化前：9.10</span><br>
+                <span class="highlight">优化后：8.13</span>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="custom-table">
+    <thead>
+        <tr>
+            <th>前后舒适度变化</th>
+            <th>说明</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>前：1.0000<br>后：0.9375</td>
+            <td>优化后整体舒适度略降，但节约约 10.6% 电费。</td>
+        </tr>
+    </tbody>
+</table>
+""", unsafe_allow_html=True)
 
 # 关闭 subcard 与 full-width div
 st.markdown('</div>', unsafe_allow_html=True)
