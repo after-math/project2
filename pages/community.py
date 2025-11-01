@@ -113,6 +113,39 @@ with left:
         sort = st.selectbox("排序", ["最新发布","最热互动"])
     with q3:
         tag_filter = st.selectbox("话题筛选", ["全部","节能技巧","热水器","数据","负荷预测","洗碗机","体验感"])
+        # -------------------- 活跃用户 --------------------
+    with st.container():
+        st.markdown('<div class="sidebar-card"><b>🏆 活跃用户</b>', unsafe_allow_html=True)
+        users = {}
+        for p in posts:
+            users[p["user"]] = users.get(p["user"], 0) + 1 + len(p["comments"])
+        top_users = sorted(users.items(), key=lambda x: x[1], reverse=True)[:5]
+        for u, n in top_users:
+            st.markdown(f"- {u} <span class='small'>· 发帖+评论 {n} 次</span>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # -------------------- 最近动态 --------------------
+    with st.container():
+        st.markdown('<div class="sidebar-card"><b>🕐 最新动态</b>', unsafe_allow_html=True)
+        recent = sorted(posts, key=lambda x: x["time"], reverse=True)[:5]
+        for p in recent:
+            st.markdown(
+                f"<div class='small'>🗓️ <b>{p['user']}</b> 发布了新帖 · {humanize(p['time'])}</div>",
+                unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # -------------------- 互动排行榜 --------------------
+    with st.container():
+        st.markdown('<div class="sidebar-card"><b>📈 热门帖子榜</b>', unsafe_allow_html=True)
+        ranked = sorted(posts, key=lambda x: (x["likes"] + len(x["comments"]) + x["star"]*2), reverse=True)[:5]
+        for p in ranked:
+            score = p["likes"] + len(p["comments"]) + p["star"]*2
+            st.markdown(
+                f"- <span class='small'>{p['user']}</span>：{p['text'][:16]}… <span style='color:#2563eb'>({score} 热度)</span>",
+                unsafe_allow_html=True
+            )
+        st.markdown("</div>", unsafe_allow_html=True)
+
 
 with right:
     with st.container():
@@ -147,7 +180,7 @@ with st.container():
                     imgs.append(b64_of_image(f))
             add_post(text, tag_input.split(","), imgs)
             st.success("已发布！")
-            st.experimental_rerun()
+            st.rerun()
 
 st.markdown("---")
 
@@ -207,10 +240,10 @@ for p in page_items:
             c1, c2, c3, c4 = st.columns(4)
             with c1:
                 if st.button(f"👍 {p['likes']}", key=f"like_{p['id']}", use_container_width=True):
-                    p["likes"] += 1; st.experimental_rerun()
+                    p["likes"] += 1; st.rerun()
             with c2:
                 if st.button(f"⭐ {p['star']}", key=f"star_{p['id']}", use_container_width=True):
-                    p["star"] += 1; st.experimental_rerun()
+                    p["star"] += 1; st.rerun()
             with c3:
                 st.write("")
             with c4:
@@ -226,7 +259,7 @@ for p in page_items:
                 with ccol1:
                     if st.button("发送", key=f"cmt_btn_{p['id']}") and new_comment.strip():
                         p["comments"].append({"user":"🙂 我","text":new_comment.strip(),"time":datetime.now()})
-                        st.experimental_rerun()
+                        st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
@@ -246,6 +279,7 @@ with right:
         else:
             st.caption("暂无话题～")
         st.markdown("</div>", unsafe_allow_html=True)
+    
 
     with st.container():
         st.markdown('<div class="sidebar-card"><b>📢 公告</b>', unsafe_allow_html=True)
